@@ -61,12 +61,8 @@
 
 /*
  * ============================================================
- * GET LOVE LETTER ID FROM URL
+ * GET ID FROM URL
  * ============================================================
- *
- * Example:
- * https://keynect-mnl.github.io/LoveProject/?id=4F8A39
- *
  */
 
 const queryString = window.location.search;
@@ -79,23 +75,50 @@ console.log("Love ID:", id);
 
 /*
  * ============================================================
- * IMPORTANT:
- * These variables need to be GLOBAL.
+ * LOAD OFFSET VALUES
  *
- * functions.js -> getHeartPoint()
- * uses offsetX and offsetY.
- *
- * Do NOT move these inside the fetch() function.
+ * These are global because functions.js uses them.
  * ============================================================
  */
 
-var offsetX = $("#loveHeart").width() / 2;
-var offsetY = $("#loveHeart").height() / 2 - 55;
+var offsetX = 0;
+var offsetY = 0;
+
+$(function() {
+
+	offsetX = $("#loveHeart").width() / 2;
+	offsetY = $("#loveHeart").height() / 2 - 55;
+
+});
 
 
 /*
  * ============================================================
- * LOAD DATA
+ * BASE64 DECODER
+ *
+ * Converts Base64 encoded JSON back into normal JSON.
+ * Supports UTF-8 characters.
+ * ============================================================
+ */
+
+function decodeBase64(base64) {
+
+	const binaryString = atob(base64);
+
+	const bytes = new Uint8Array(binaryString.length);
+
+	for (let i = 0; i < binaryString.length; i++) {
+		bytes[i] = binaryString.charCodeAt(i);
+	}
+
+	return new TextDecoder("utf-8").decode(bytes);
+
+}
+
+
+/*
+ * ============================================================
+ * LOAD LOVE DATA
  * ============================================================
  */
 
@@ -109,7 +132,7 @@ if (!id) {
 
 } else {
 
-	fetch('data.json')
+	fetch("data.json")
 
 		.then(function(response) {
 
@@ -124,38 +147,41 @@ if (!id) {
 		.then(function(data) {
 
 			/*
-			 * Find the love letter using the ID.
-			 *
-			 * toUpperCase() allows:
-			 *
-			 * ?id=4F8A39
-			 * ?id=4f8a39
-			 *
-			 * to both work.
+			 * Find encoded data using the ID
 			 */
 
-			const loveData = data[id.toUpperCase()];
+			const encodedData = data[id.toUpperCase()];
 
+			if (!encodedData) {
 
-			/*
-			 * ID doesn't exist
-			 */
-
-			if (!loveData) {
-
-				$("#names").text("Invalid link");
-
-				$("#loveu").html(
-					"This love letter could not be found."
+				throw new Error(
+					"Love letter not found"
 				);
 
-				return;
 			}
 
 
 			/*
+			 * Decode Base64
+			 */
+
+			const decodedData = decodeBase64(encodedData);
+
+
+			/*
+			 * Convert decoded JSON string
+			 * into a JavaScript object
+			 */
+
+			const loveData = JSON.parse(decodedData);
+
+
+			console.log("Love data loaded");
+
+
+			/*
 			 * ====================================================
-			 * GET DATA FROM JSON
+			 * GET DATA
 			 * ====================================================
 			 */
 
@@ -163,12 +189,6 @@ if (!id) {
 			const receiver = loveData.receiver;
 			const date = loveData.date;
 			const message = loveData.message;
-
-
-			console.log("Sender:", sender);
-			console.log("Receiver:", receiver);
-			console.log("Date:", date);
-			console.log("Message:", message);
 
 
 			/*
@@ -195,19 +215,9 @@ if (!id) {
 
 			/*
 			 * ====================================================
-			 * CONVERT JSON DATE
+			 * CONVERT DATE
 			 *
-			 * JSON format:
-			 *
-			 * "2026-04-24"
-			 *
-			 * becomes:
-			 *
-			 * yyyy = 2026
-			 * mm   = 3
-			 * dd   = 24
-			 *
-			 * JavaScript months are zero-based.
+			 * YYYY-MM-DD
 			 * ====================================================
 			 */
 
@@ -218,14 +228,9 @@ if (!id) {
 			const dd = parseInt(dateParts[2]);
 
 
-			console.log("Year:", yyyy);
-			console.log("Month:", mm);
-			console.log("Day:", dd);
-
-
 			/*
 			 * ====================================================
-			 * CREATE RELATIONSHIP START DATE
+			 * RELATIONSHIP DATE
 			 * ====================================================
 			 */
 
@@ -244,14 +249,14 @@ if (!id) {
 
 
 			console.log(
-				"Relationship start date:",
+				"Relationship date:",
 				together
 			);
 
 
 			/*
 			 * ====================================================
-			 * CHECK CANVAS SUPPORT
+			 * CANVAS SUPPORT
 			 * ====================================================
 			 */
 
@@ -289,11 +294,11 @@ if (!id) {
 
 				/*
 				 * ====================================================
-				 * START HEART ANIMATION
+				 * START HEART
 				 * ====================================================
 				 */
 
-				setTimeout(function () {
+				setTimeout(function() {
 
 					startHeartAnimation();
 
@@ -302,14 +307,13 @@ if (!id) {
 
 				/*
 				 * ====================================================
-				 * START TIMER
+				 * TIMER
 				 * ====================================================
 				 */
 
 				timeElapse(together);
 
-
-				setInterval(function () {
+				setInterval(function() {
 
 					timeElapse(together);
 
@@ -318,7 +322,7 @@ if (!id) {
 
 				/*
 				 * ====================================================
-				 * POSITION CODE
+				 * POSITIONING
 				 * ====================================================
 				 */
 
@@ -342,7 +346,7 @@ if (!id) {
 			);
 
 			$("#loveu").html(
-				"Unable to load this love letter."
+				"This love letter could not be found."
 			);
 
 		});
