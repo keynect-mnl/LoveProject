@@ -1,18 +1,23 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
+
 <script src="https://kit.fontawesome.com/a14ae32021.js" crossorigin="anonymous"></script>
+
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
 <title>I Love U Heart</title>
 
 <style type="text/css">
 @font-face {
-    font-family: digit;
-    src: url('digital-7_mono.ttf') format("truetype");
+	font-family: digit;
+	src: url('digital-7_mono.ttf') format("truetype");
 }
 </style>
 
 <link href="css/default.css" type="text/css" rel="stylesheet">
+
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/garden.js"></script>
 <script type="text/javascript" src="js/functions.js"></script>
@@ -22,131 +27,326 @@
 <body>
 
 <div id="mainDiv">
-    <div id="content">
-        <div id="loveHeart">
-            <canvas id="garden"></canvas>
-            <div id="words">
-                <div id="messages">
-                    <span id="names">Loading...</span>
-                    <div id="elapseClock"></div>
-                </div>
 
-                <div id="loveu">
-                    Loading...<br/>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div id="content">
+
+		<div id="loveHeart">
+
+			<canvas id="garden"></canvas>
+
+			<div id="words">
+
+				<div id="messages">
+
+					<span id="names">Loading...</span>
+
+					<div id="elapseClock"></div>
+
+				</div>
+
+				<div id="loveu">
+					Loading...
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
 </div>
 
+
 <script type="text/javascript">
+
+/*
+ * ============================================================
+ * GET LOVE LETTER ID FROM URL
+ * ============================================================
+ *
+ * Example:
+ * https://keynect-mnl.github.io/LoveProject/?id=4F8A39
+ *
+ */
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-// Only parameter used in the URL
 const id = urlParams.get('id');
 
-console.log("ID:", id);
+console.log("Love ID:", id);
+
+
+/*
+ * ============================================================
+ * IMPORTANT:
+ * These variables need to be GLOBAL.
+ *
+ * functions.js -> getHeartPoint()
+ * uses offsetX and offsetY.
+ *
+ * Do NOT move these inside the fetch() function.
+ * ============================================================
+ */
+
+var offsetX = $("#loveHeart").width() / 2;
+var offsetY = $("#loveHeart").height() / 2 - 55;
+
+
+/*
+ * ============================================================
+ * LOAD DATA
+ * ============================================================
+ */
 
 if (!id) {
-    $("#names").text("Invalid link");
-    $("#loveu").html("No ID was provided.");
+
+	$("#names").text("Invalid link");
+
+	$("#loveu").html(
+		"No love letter ID was provided."
+	);
+
 } else {
 
-    fetch('data.json')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Could not load data.json");
-            }
-            return response.json();
-        })
-        .then(data => {
+	fetch('data.json')
 
-            // Find the entry corresponding to the ID
-            const loveData = data[id.toUpperCase()];
+		.then(function(response) {
 
-            if (!loveData) {
-                $("#names").text("Invalid link");
-                $("#loveu").html("This love letter could not be found.");
-                return;
-            }
+			if (!response.ok) {
+				throw new Error("Could not load data.json");
+			}
 
-            const sender = loveData.sender;
-            const receiver = loveData.receiver;
-            const date = loveData.date;
-            const message = loveData.message;
+			return response.json();
 
-            console.log("Sender:", sender);
-            console.log("Receiver:", receiver);
-            console.log("Date:", date);
-            console.log("Message:", message);
+		})
 
-            // Display names and message
-            $("#names").text(sender + " + " + receiver);
-            $("#loveu").html(message + "<br>From: " + sender);
+		.then(function(data) {
 
-            // Convert YYYY-MM-DD into a Date
-            const dateParts = date.split("-");
+			/*
+			 * Find the love letter using the ID.
+			 *
+			 * toUpperCase() allows:
+			 *
+			 * ?id=4F8A39
+			 * ?id=4f8a39
+			 *
+			 * to both work.
+			 */
 
-            const yyyy = parseInt(dateParts[0]);
-            const mm = parseInt(dateParts[1]) - 1;
-            const dd = parseInt(dateParts[2]);
+			const loveData = data[id.toUpperCase()];
 
-            var offsetX = $("#loveHeart").width() / 2;
-            var offsetY = $("#loveHeart").height() / 2 - 55;
 
-            var together = new Date();
+			/*
+			 * ID doesn't exist
+			 */
 
-            together.setFullYear(yyyy, mm, dd);
-            together.setHours(0);
-            together.setMinutes(0);
-            together.setSeconds(0);
-            together.setMilliseconds(0);
+			if (!loveData) {
 
-            console.log("Together:", together);
+				$("#names").text("Invalid link");
 
-            if (!document.createElement('canvas').getContext) {
+				$("#loveu").html(
+					"This love letter could not be found."
+				);
 
-                var msg = document.createElement("div");
-                msg.id = "errorMsg";
-                msg.innerHTML =
-                    "Your browser doesn't support HTML5!<br/>" +
-                    "Recommend use Chrome 14+/IE 9+/Firefox 7+/Safari 4+";
+				return;
+			}
 
-                document.body.appendChild(msg);
 
-                $("#code").css("display", "none");
-                $("#copyright").css("position", "absolute");
-                $("#copyright").css("bottom", "10px");
+			/*
+			 * ====================================================
+			 * GET DATA FROM JSON
+			 * ====================================================
+			 */
 
-                document.execCommand("stop");
+			const sender = loveData.sender;
+			const receiver = loveData.receiver;
+			const date = loveData.date;
+			const message = loveData.message;
 
-            } else {
 
-                setTimeout(function () {
-                    startHeartAnimation();
-                }, 100);
+			console.log("Sender:", sender);
+			console.log("Receiver:", receiver);
+			console.log("Date:", date);
+			console.log("Message:", message);
 
-                timeElapse(together);
 
-                setInterval(function () {
-                    timeElapse(together);
-                }, 500);
+			/*
+			 * ====================================================
+			 * DISPLAY NAMES
+			 * ====================================================
+			 */
 
-                adjustCodePosition();
-                $("#code").typewriter();
-            }
+			$("#names").text(
+				sender + " + " + receiver
+			);
 
-        })
-        .catch(error => {
 
-            console.error("Error loading love data:", error);
+			/*
+			 * ====================================================
+			 * DISPLAY MESSAGE
+			 * ====================================================
+			 */
 
-            $("#names").text("Something went wrong");
-            $("#loveu").html("Unable to load this love letter.");
+			$("#loveu").html(
+				message + "<br>From: " + sender
+			);
 
-        });
+
+			/*
+			 * ====================================================
+			 * CONVERT JSON DATE
+			 *
+			 * JSON format:
+			 *
+			 * "2026-04-24"
+			 *
+			 * becomes:
+			 *
+			 * yyyy = 2026
+			 * mm   = 3
+			 * dd   = 24
+			 *
+			 * JavaScript months are zero-based.
+			 * ====================================================
+			 */
+
+			const dateParts = date.split("-");
+
+			const yyyy = parseInt(dateParts[0]);
+			const mm = parseInt(dateParts[1]) - 1;
+			const dd = parseInt(dateParts[2]);
+
+
+			console.log("Year:", yyyy);
+			console.log("Month:", mm);
+			console.log("Day:", dd);
+
+
+			/*
+			 * ====================================================
+			 * CREATE RELATIONSHIP START DATE
+			 * ====================================================
+			 */
+
+			var together = new Date();
+
+			together.setFullYear(
+				yyyy,
+				mm,
+				dd
+			);
+
+			together.setHours(0);
+			together.setMinutes(0);
+			together.setSeconds(0);
+			together.setMilliseconds(0);
+
+
+			console.log(
+				"Relationship start date:",
+				together
+			);
+
+
+			/*
+			 * ====================================================
+			 * CHECK CANVAS SUPPORT
+			 * ====================================================
+			 */
+
+			if (!document.createElement('canvas').getContext) {
+
+				var msg = document.createElement("div");
+
+				msg.id = "errorMsg";
+
+				msg.innerHTML =
+					"Your browser doesn't support HTML5!<br/>" +
+					"Recommend use Chrome 14+/IE 9+/Firefox 7+/Safari 4+";
+
+				document.body.appendChild(msg);
+
+				$("#code").css(
+					"display",
+					"none"
+				);
+
+				$("#copyright").css(
+					"position",
+					"absolute"
+				);
+
+				$("#copyright").css(
+					"bottom",
+					"10px"
+				);
+
+				document.execCommand("stop");
+
+
+			} else {
+
+				/*
+				 * ====================================================
+				 * START HEART ANIMATION
+				 * ====================================================
+				 */
+
+				setTimeout(function () {
+
+					startHeartAnimation();
+
+				}, 100);
+
+
+				/*
+				 * ====================================================
+				 * START TIMER
+				 * ====================================================
+				 */
+
+				timeElapse(together);
+
+
+				setInterval(function () {
+
+					timeElapse(together);
+
+				}, 500);
+
+
+				/*
+				 * ====================================================
+				 * POSITION CODE
+				 * ====================================================
+				 */
+
+				adjustCodePosition();
+
+				$("#code").typewriter();
+
+			}
+
+		})
+
+		.catch(function(error) {
+
+			console.error(
+				"Error loading love data:",
+				error
+			);
+
+			$("#names").text(
+				"Something went wrong"
+			);
+
+			$("#loveu").html(
+				"Unable to load this love letter."
+			);
+
+		});
+
 }
 
 </script>
